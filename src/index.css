@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+
 :root {
   font-family: 'Permanent Marker', cursive, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -13,17 +15,20 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
-
 body {
   margin: 0;
   display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background: radial-gradient(ellipse at center, #1a1a1a 0%, #0c0c0c 100%);
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.9)),
+    url('https://sdmntprsouthcentralus.oaiusercontent.com/files/00000000-512c-61f7-a53f-fad3c57e4ad7/raw?se=2025-07-30T09%3A17%3A38Z&sp=r&sv=2024-08-04&sr=b&scid=e526d50b-a60f-5dbb-8182-17a9b0bafb5a&skoid=c953efd6-2ae8-41b4-a6d6-34b1475ac07c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-29T18%3A53%3A10Z&ske=2025-07-30T18%3A53%3A10Z&sks=b&skv=2024-08-04&sig=U6UZrP9s9WvEBB8UbWbcOhf9BiXZmKJZHnU8Eu2Z/xE%3D');
   background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   color: #d4ffd0;
+  background-attachment: fixed;
 }
 
 h1,

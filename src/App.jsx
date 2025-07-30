@@ -6,12 +6,12 @@ import Login from './pages/Login';
 import Menu from './pages/Menu';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
+import Cart from './pages/Cart'; // ✅ added
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
 
-  // ✅ Restore login from localStorage when app loads
   useEffect(() => {
     const phone = localStorage.getItem("phone");
     if (phone) {
@@ -34,6 +34,12 @@ export default function App() {
             path="/menu"
             element={
               user ? <Menu cart={cart} setCart={setCart} /> : <Navigate to="/" />
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              user ? <Cart cart={cart} setCart={setCart} /> : <Navigate to="/" />
             }
           />
           <Route

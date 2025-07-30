@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import animeImg from '../assets/anime.png'; // ✅ Correct import path
 
 export default function Login({ onLogin }) {
   const [phone, setPhone] = useState('');
@@ -8,7 +9,7 @@ export default function Login({ onLogin }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    graffitiSoundRef.current = new Audio('/spray.mp3');
+    graffitiSoundRef.current = new Audio('/spray.mp3'); // Ensure this file is in /public
   }, []);
 
   const handleLogin = () => {
@@ -42,27 +43,26 @@ export default function Login({ onLogin }) {
     <div
       className="min-h-screen flex items-center justify-center bg-black text-white relative px-4"
       style={{
-        backgroundImage: "url('/anime-bg.jpg')",
+        backgroundImage: "url('/anime-bg.jpg')", // Optional: replace with import if needed
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
       <div className="absolute inset-0 bg-black bg-opacity-60 z-0" />
 
-      {/* Stylish Login Box */}
       <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl overflow-hidden">
-        {/* Anime image inside */}
         <div className="flex justify-center items-center bg-gradient-to-br from-black/30 to-white/10 p-6 border-b border-white/10">
           <img
-            src="https://sdmntprcentralus.oaiusercontent.com/files/00000000-7624-61f5-9c23-f04db6bd5899/raw?se=2025-07-30T08%3A47%3A25Z&sp=r&sv=2024-08-04&sr=b&scid=a4812ae0-e4f1-5193-8a05-dde7d8f92201&skoid=c953efd6-2ae8-41b4-a6d6-34b1475ac07c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-29T18%3A53%3A16Z&ske=2025-07-30T18%3A53%3A16Z&sks=b&skv=2024-08-04&sig=G7pbKFA4IYIjWmtra748mzfT/J/rIRT%2Bvnf1Af89dPo%3D"
+            src={animeImg}
             alt="Anime"
             className="rounded-full w-44 h-44 object-cover border-4 border-white shadow-lg animate-spin-slow"
           />
         </div>
 
-        {/* Form */}
         <div className="p-8">
-          <h1 className="text-3xl font-extrabold mb-2 text-green-400 text-center tracking-wide">Exclusive Infused Collection</h1>
+          <h1 className="text-3xl font-extrabold mb-2 text-green-400 text-center tracking-wide">
+            Exclusive Infused Collection
+          </h1>
           <p className="text-center text-sm text-gray-300 mb-2">(21+)</p>
           <p className="text-center text-pink-300 italic font-mono mb-6">"Nobody knows it's you"</p>
 

@@ -25,6 +25,8 @@ export default function Menu() {
     },
   ]);
 
+  const [cart, setCart] = useState([]);
+
   const updateQuantity = (id, delta) => {
     setCookies(prev =>
       prev.map(cookie => {
@@ -42,6 +44,29 @@ export default function Menu() {
         cookie.id === id ? { ...cookie, available: !cookie.available } : cookie
       )
     );
+  };
+
+  const addToCart = (cookieToAdd) => {
+    if (!cookieToAdd.available) {
+      alert(`${cookieToAdd.name} is out of stock!`);
+      return;
+    }
+
+    setCart(prevCart => {
+      const existing = prevCart.find(item => item.id === cookieToAdd.id);
+      if (existing) {
+        return prevCart.map(item =>
+          item.id === cookieToAdd.id
+            ? { ...item, quantity: item.quantity + cookieToAdd.quantity }
+            : item
+        );
+      } else {
+        return [...prevCart, { ...cookieToAdd }];
+      }
+    });
+
+    console.log('Cart:', [...cart, cookieToAdd]);
+    alert(`${cookieToAdd.quantity} ${cookieToAdd.name}(s) added to cart!`);
   };
 
   return (
@@ -94,6 +119,7 @@ export default function Menu() {
             </div>
 
             <button
+              onClick={() => addToCart(cookie)}
               className="mt-4 block w-full bg-white text-green-800 font-bold py-2 rounded-xl hover:bg-green-200 transition-all duration-200"
             >
               Add to Cart

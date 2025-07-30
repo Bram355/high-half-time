@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function Menu() {
+export default function Menu({ cart, setCart }) {
+  const navigate = useNavigate();
+
   const [cookies, setCookies] = useState([
     {
       id: 1,
@@ -24,8 +27,6 @@ export default function Menu() {
       available: true,
     },
   ]);
-
-  const [cart, setCart] = useState([]);
 
   const updateQuantity = (id, delta) => {
     setCookies(prev =>
@@ -52,20 +53,13 @@ export default function Menu() {
       return;
     }
 
-    setCart(prevCart => {
-      const existing = prevCart.find(item => item.id === cookieToAdd.id);
-      if (existing) {
-        return prevCart.map(item =>
-          item.id === cookieToAdd.id
-            ? { ...item, quantity: item.quantity + cookieToAdd.quantity }
-            : item
-        );
-      } else {
-        return [...prevCart, { ...cookieToAdd }];
-      }
-    });
+    const alreadyInCart = cart.find(item => item.id === cookieToAdd.id);
+    if (alreadyInCart) {
+      alert(`${cookieToAdd.name} is already in your cart.`);
+      return;
+    }
 
-    console.log('Cart:', [...cart, cookieToAdd]);
+    setCart(prevCart => [...prevCart, { ...cookieToAdd }]);
     alert(`${cookieToAdd.quantity} ${cookieToAdd.name}(s) added to cart!`);
   };
 
@@ -91,6 +85,7 @@ export default function Menu() {
         </p>
       </div>
 
+      {/* Cookie Grid */}
       <div className="grid md:grid-cols-3 gap-8 relative z-10">
         {cookies.map(cookie => (
           <div
@@ -101,6 +96,12 @@ export default function Menu() {
           >
             <h2 className="text-2xl font-bold text-green-200 mb-2">{cookie.name}</h2>
             <p className="text-lg font-semibold">Ksh {cookie.price * cookie.quantity}</p>
+
+            {(cookie.name.includes('Choco') || cookie.name.includes('Mint')) && (
+              <p className="text-yellow-300 text-sm mt-1 italic">
+                ⚠️ Minimum order quantity is 10
+              </p>
+            )}
 
             <div className="flex items-center gap-3 mt-4">
               <button
@@ -140,6 +141,16 @@ export default function Menu() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* View Cart Button */}
+      <div className="mt-10 text-center z-10 relative">
+        <button
+          onClick={() => navigate('/checkout')}
+          className="bg-white text-black font-bold px-6 py-3 rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300"
+        >
+          🛒 View Checkout ({cart.length})
+        </button>
       </div>
     </div>
   );

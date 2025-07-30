@@ -1,76 +1,47 @@
 import { useNavigate } from 'react-router-dom';
 
-export default function Cart({ cart, setCart }) {
+export default function Cart({ cart }) {
   const navigate = useNavigate();
 
-  const handleQuantityChange = (index, newQty) => {
-    const updated = [...cart];
-    updated[index].quantity = newQty;
-    updated[index].totalPrice = newQty * updated[index].price;
-    setCart(updated);
-  };
-
-  const handleRemove = (index) => {
-    const updated = cart.filter((_, i) => i !== index);
-    setCart(updated);
-  };
-
-  const totalAmount = cart.reduce((sum, item) => sum + item.totalPrice, 0);
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <div className="max-w-3xl mx-auto bg-black text-green-400 p-6 rounded-lg shadow-lg">
-      <h1 className="text-4xl graffiti-font text-center mb-6 animate-pulse">
-        Your Cart 🍪
-      </h1>
+    <div className="max-w-xl mx-auto p-4 bg-white shadow-md rounded">
+      <h1 className="text-xl font-bold mb-4">Your Cart</h1>
 
       {cart.length === 0 ? (
-        <p className="text-center text-white">No cookies in your cart yet, bruh 💤</p>
+        <p>Your cart is empty.</p>
       ) : (
         <>
-          <ul className="space-y-4">
+          <ul className="space-y-2">
             {cart.map((item, index) => (
               <li
                 key={index}
-                className="flex justify-between items-center bg-green-900 bg-opacity-20 p-4 rounded shadow-sm"
+                className="flex justify-between items-center border-b pb-2"
               >
                 <div>
-                  <h2 className="text-xl font-bold">{item.name}</h2>
-                  <p>Ksh {item.price} each</p>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <label>Qty:</label>
-                    <input
-                      type="number"
-                      min={item.minQuantity || 1}
-                      className="w-16 px-2 py-1 rounded bg-gray-800 text-white"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(index, parseInt(e.target.value) || 1)
-                      }
-                    />
-                  </div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {item.quantity} × {item.price.toLocaleString()} Ksh
+                  </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold">Total: Ksh {item.totalPrice}</p>
-                  <button
-                    className="text-sm text-red-400 hover:text-red-600"
-                    onClick={() => handleRemove(index)}
-                  >
-                    Remove
-                  </button>
-                </div>
+                <p className="font-semibold">
+                  {(item.quantity * item.price).toLocaleString()} Ksh
+                </p>
               </li>
             ))}
           </ul>
 
-          <div className="mt-6 text-right">
-            <p className="text-2xl font-bold">Grand Total: Ksh {totalAmount}</p>
-            <button
-              className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              onClick={() => navigate('/checkout')}
-            >
-              Proceed to Checkout 🚀
-            </button>
+          <div className="mt-4 text-right font-bold text-lg">
+            Total: {total.toLocaleString()} Ksh
           </div>
+
+          <button
+            onClick={() => navigate('/checkout')}
+            className="mt-6 w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
+          >
+            OK
+          </button>
         </>
       )}
     </div>

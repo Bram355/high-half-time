@@ -5,24 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🌿 High-Half-Time</title>
 
-    <!-- Tailwind CSS (optional, only if you're using it) -->
+    <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Leaflet CSS (important for map tiles!) -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-o9N1j+1F4rt1o1Wh1W3NqPwnOGgfKkIjr3GJtdGAsks="
-      crossorigin=""
-    />
+    <!-- Fix for Leaflet geocoder search bar input visibility -->
+    <style>
+      .leaflet-control-geocoder-form input {
+        color: black !important;
+        background-color: white !important;
+        font-size: 14px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+    </style>
 
-    <!-- Favicon (optional) -->
-    <link rel="icon" href="🌿" />
+    <!-- Optional: favicon -->
+    <link rel="icon" href="/favicon.ico" />
   </head>
-  <body class="bg-gray-100 text-gray-800">
+  <body class="bg-black text-white">
     <div id="root"></div>
-
-    <!-- Vite injects scripts here -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -31,6 +31,7 @@ body {
   background-attachment: fixed;
 }
 
+/* Typography & Titles */
 h1,
 .graffiti-title {
   font-family: 'Permanent Marker', cursive;
@@ -40,6 +41,14 @@ h1,
   color: #00ff88;
 }
 
+h2,
+h3,
+p {
+  font-family: 'Permanent Marker', cursive;
+  color: #caffb9;
+}
+
+/* Buttons */
 button {
   border-radius: 12px;
   border: 1px solid transparent;
@@ -64,6 +73,7 @@ button:focus-visible {
   outline: 3px dashed #00ff88;
 }
 
+/* Links */
 a {
   font-weight: 500;
   color: #7fff00;
@@ -73,6 +83,7 @@ a:hover {
   color: #00ff88;
 }
 
+/* Pulse Animation */
 .animate-pulse {
   animation: pulse 2s infinite;
 }
@@ -92,7 +103,7 @@ a:hover {
   }
 }
 
-/* Optional: smoky haze overlay */
+/* Smoky Glow Effect */
 .smoke {
   width: 400px;
   height: 400px;
@@ -100,6 +111,7 @@ a:hover {
   filter: blur(100px);
   opacity: 0.2;
   z-index: -1;
+  position: absolute;
   animation: floatSmoke 6s ease-in-out infinite;
 }
 
@@ -113,4 +125,14 @@ a:hover {
   100% {
     transform: translateY(0px) scale(1);
   }
+}
+
+/* Optional: graffiti container glow */
+.graffiti-container {
+  background-color: rgba(0, 0, 0, 0.65);
+  border: 2px solid #00ff88;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #00ff88;
+  padding: 2rem;
+  margin: 1rem;
 }

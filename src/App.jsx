@@ -6,7 +6,7 @@ import Login from './pages/Login';
 import Menu from './pages/Menu';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
-import Cart from './pages/Cart'; // ✅ added
+import Cart from './pages/Cart';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -45,7 +45,7 @@ export default function App() {
           <Route
             path="/checkout"
             element={
-              user ? <Checkout cart={cart} /> : <Navigate to="/" />
+              user ? <Checkout cart={cart} setCart={setCart} /> : <Navigate to="/" />
             }
           />
           <Route

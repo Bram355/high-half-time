@@ -89,7 +89,7 @@ export default function Checkout() {
 
       {/* Cart Summary */}
       <div className="bg-[#2e2e2e] rounded-2xl p-6 shadow-2xl border border-lime-500">
-        <h3 className="text-xl font-bold mb-4 text-center text-white">🛒 Order Summary</h3>
+        <h3 className="text-xl font-bold mb-4 text-center text-white">🛒 Cash Your Stash</h3>
         <ul className="divide-y divide-gray-700">
           {cart.map((item, idx) => (
             <li key={idx} className="py-3 flex justify-between">

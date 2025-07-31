@@ -75,7 +75,7 @@ export default function Menu() {
 
         {/* Circular Pin Badge */}
         <div className="absolute -top-3 -right-3 w-24 h-24 rounded-full bg-red-600 flex items-center justify-center text-xs text-white font-bold text-center shadow-lg p-2 animate-pulse">
-          You are about to get backed 🍪🔥
+          You are about to get baked 🍪🔥
         </div>
       </div>
 

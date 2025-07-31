@@ -3,20 +3,21 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Header from './components/Header';
 import Login from './pages/Login';
+import Register from './pages/Register'; // ✅ Add Register page
 import Menu from './pages/Menu';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import Cart from './pages/Cart';
-import Chat from './pages/Chat'; // ✅ import your Chat component
+import Chat from './pages/Chat';
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
-    const phone = localStorage.getItem("phone");
-    if (phone) {
-      setUser({ phone });
+    const storedUser = localStorage.getItem("loggedInUser");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
   }, []);
 
@@ -30,6 +31,10 @@ export default function App() {
             element={
               user ? <Navigate to="/menu" /> : <Login onLogin={setUser} />
             }
+          />
+          <Route
+            path="/register"
+            element={<Register onRegister={setUser} />} // ✅ Update: pass onRegister
           />
           <Route
             path="/menu"

@@ -130,7 +130,7 @@ export default function Menu() {
         </button>
 
         <button
-          onClick={() => navigate('/checkout')}
+          onClick={() => navigate('/checkout', { state: { cart } })}
           className="bg-white text-black font-bold px-6 py-3 rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300"
         >
           🛒 View Checkout ({cart.length})

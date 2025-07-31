@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function Menu({ cart, setCart }) {
+export default function Menu() {
   const navigate = useNavigate();
 
   const [cookies, setCookies] = useState([
@@ -21,99 +21,90 @@ export default function Menu({ cart, setCart }) {
     },
     {
       id: 3,
-      name: 'Mint Blazed Cookie',
+      name: 'Minty Blaze Cookie',
       price: 250,
       quantity: 10,
       available: true,
     },
   ]);
 
-  const updateQuantity = (id, delta) => {
-    setCookies(prev =>
-      prev.map(cookie => {
-        const minQty = cookie.name.includes('Choco') || cookie.name.includes('Mint') ? 10 : 1;
-        return cookie.id === id
-          ? { ...cookie, quantity: Math.max(minQty, cookie.quantity + delta) }
-          : cookie;
-      })
-    );
+  const [cart, setCart] = useState([]);
+
+  const addToCart = (cookie) => {
+    if (cookie.quantity < 10 && (cookie.id === 2 || cookie.id === 3)) {
+      alert('Minimum order for this cookie is 10.');
+      return;
+    }
+
+    const existingItem = cart.find((item) => item.id === cookie.id);
+    if (existingItem) {
+      setCart(
+        cart.map((item) =>
+          item.id === cookie.id
+            ? { ...item, quantity: item.quantity + cookie.quantity }
+            : item
+        )
+      );
+    } else {
+      setCart([...cart, cookie]);
+    }
   };
 
-  const toggleAvailability = (id) => {
-    setCookies(prev =>
-      prev.map(cookie =>
-        cookie.id === id ? { ...cookie, available: !cookie.available } : cookie
+  const updateQuantity = (id, amount) => {
+    setCookies(
+      cookies.map((cookie) =>
+        cookie.id === id
+          ? {
+              ...cookie,
+              quantity:
+                cookie.id === 2 || cookie.id === 3
+                  ? Math.max(10, cookie.quantity + amount)
+                  : Math.max(1, cookie.quantity + amount),
+            }
+          : cookie
       )
     );
   };
 
-  const addToCart = (cookieToAdd) => {
-    if (!cookieToAdd.available) {
-      alert(`${cookieToAdd.name} is out of stock!`);
-      return;
-    }
-
-    const alreadyInCart = cart.find(item => item.id === cookieToAdd.id);
-    if (alreadyInCart) {
-      alert(`${cookieToAdd.name} is already in your cart.`);
-      return;
-    }
-
-    setCart(prevCart => [...prevCart, { ...cookieToAdd }]);
-    alert(`${cookieToAdd.quantity} ${cookieToAdd.name}(s) added to cart!`);
-  };
-
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-10 relative overflow-hidden">
-      {/* Smoke Animation */}
-      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-0">
-        <div className="smoke animate-pulse" />
-      </div>
-
-      {/* Background Music */}
-      <audio autoPlay loop volume="0.2" className="hidden" id="bg-music">
-        <source src="/audio/lofi.mp3" type="audio/mp3" />
-      </audio>
-
-      {/* Header */}
-      <div className="text-center mb-14 relative z-10">
-        <h1 className="text-5xl font-black tracking-wide graffiti-title">
-          🍪 HIGH-HALF-TIME MENU
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white px-6 py-10">
+      <div className="relative flex justify-center mb-6">
+        <h1 className="text-4xl font-extrabold text-center tracking-widest uppercase">
+          🌿 High-Half-Time Menu
         </h1>
-        <p className="mt-2 text-lg text-green-300 font-semibold animate-pulse">
-          You're about to get baked 😵‍💫🔥
-        </p>
+
+        {/* Circular Pin Badge */}
+        <div className="absolute -top-3 -right-3 w-24 h-24 rounded-full bg-red-600 flex items-center justify-center text-xs text-white font-bold text-center shadow-lg p-2 animate-pulse">
+          You are about to get backed 🍪🔥
+        </div>
       </div>
 
-      {/* Cookie Grid */}
-      <div className="grid md:grid-cols-3 gap-8 relative z-10">
-        {cookies.map(cookie => (
+      <p className="text-center text-sm text-yellow-400 mb-10">
+        🍪 Minimum order of <strong>10</strong> cookies required for Choco Kush and Minty Blaze.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {cookies.map((cookie) => (
           <div
             key={cookie.id}
-            className={`p-6 rounded-2xl shadow-lg bg-gradient-to-br ${
-              cookie.available ? 'from-green-900 to-green-700' : 'from-gray-800 to-gray-600'
-            }`}
+            className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between shadow-md backdrop-blur"
           >
-            <h2 className="text-2xl font-bold text-green-200 mb-2">{cookie.name}</h2>
-            <p className="text-lg font-semibold">Ksh {cookie.price * cookie.quantity}</p>
+            <div>
+              <h2 className="text-2xl font-bold mb-2">{cookie.name}</h2>
+              <p className="text-green-400 text-lg mb-4">Ksh {cookie.price}</p>
+            </div>
 
-            {(cookie.name.includes('Choco') || cookie.name.includes('Mint')) && (
-              <p className="text-yellow-300 text-sm mt-1 italic">
-                ⚠️ Minimum order quantity is 10
-              </p>
-            )}
-
-            <div className="flex items-center gap-3 mt-4">
+            <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={() => updateQuantity(cookie.id, -1)}
-                className="bg-green-800 hover:bg-green-600 text-white px-3 py-1 rounded-full text-lg"
+                className="px-3 py-1 bg-white/10 rounded-full hover:bg-white/20"
               >
                 -
               </button>
-              <span className="text-xl font-bold">{cookie.quantity}</span>
+              <span>{cookie.quantity}</span>
               <button
                 onClick={() => updateQuantity(cookie.id, 1)}
-                className="bg-green-800 hover:bg-green-600 text-white px-3 py-1 rounded-full text-lg"
+                className="px-3 py-1 bg-white/10 rounded-full hover:bg-white/20"
               >
                 +
               </button>
@@ -121,30 +112,23 @@ export default function Menu({ cart, setCart }) {
 
             <button
               onClick={() => addToCart(cookie)}
-              className="mt-4 block w-full bg-white text-green-800 font-bold py-2 rounded-xl hover:bg-green-200 transition-all duration-200"
+              className="bg-green-700 text-white py-2 px-4 rounded-full hover:bg-green-600 transition-all"
             >
               Add to Cart
             </button>
-
-            <div className="mt-3">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={cookie.available}
-                  onChange={() => toggleAvailability(cookie.id)}
-                  className="accent-green-400 scale-125"
-                />
-                <span className="text-green-300 font-semibold">
-                  {cookie.available ? 'Available' : 'Out of stock'}
-                </span>
-              </label>
-            </div>
           </div>
         ))}
       </div>
 
-      {/* View Cart Button */}
-      <div className="mt-10 text-center z-10 relative">
+      {/* View Checkout and Chat Buttons */}
+      <div className="mt-16 flex justify-center items-center gap-6 z-10 relative">
+        <button
+          onClick={() => navigate('/chat')}
+          className="bg-green-800 text-white font-bold px-6 py-3 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300"
+        >
+          💬 Chat
+        </button>
+
         <button
           onClick={() => navigate('/checkout')}
           className="bg-white text-black font-bold px-6 py-3 rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300"

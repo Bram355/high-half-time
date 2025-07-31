@@ -7,6 +7,7 @@ import Menu from './pages/Menu';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import Cart from './pages/Cart';
+import Chat from './pages/Chat'; // ✅ import your Chat component
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -52,6 +53,12 @@ export default function App() {
             path="/orders"
             element={
               user ? <Orders user={user} /> : <Navigate to="/" />
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              user ? <Chat user={user} /> : <Navigate to="/" />
             }
           />
         </Routes>

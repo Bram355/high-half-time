@@ -10,19 +10,45 @@ import Orders from './pages/Orders';
 import Cart from './pages/Cart';
 import Chat from './pages/Chat';
 
-import AdminDashboard from './pages/AdminDashboard'; // ✅ already imported
-import TestOrderForm from './pages/TestOrderForm';   // ✅ import test form
+import AdminDashboard from './pages/AdminDashboard';
+import TestOrderForm from './pages/TestOrderForm';
+
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("loggedInUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const auth = getAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const tokenResult = await firebaseUser.getIdTokenResult(true);
+        const claims = tokenResult.claims;
+
+        const userData = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          username: claims.name || firebaseUser.displayName || "Guest",
+          isAdmin: claims.admin === true,
+        };
+
+        localStorage.setItem("loggedInUser", JSON.stringify(userData));
+        setUser(userData);
+      } else {
+        localStorage.removeItem("loggedInUser");
+        setUser(null);
+      }
+
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  if (loading) return <div className="text-center p-10">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -70,10 +96,15 @@ export default function App() {
             }
           />
 
-          {/* ✅ Admin Dashboard (no login required for now) */}
-          <Route path="/admin" element={<AdminDashboard />} />
+          {/* 🔒 Admin-only route */}
+          <Route
+            path="/admin"
+            element={
+              user?.isAdmin ? <AdminDashboard /> : <Navigate to="/" />
+            }
+          />
 
-          {/* ✅ Test Order Submission Route */}
+          {/* Testing route */}
           <Route path="/test-order" element={<TestOrderForm />} />
         </Routes>
       </main>

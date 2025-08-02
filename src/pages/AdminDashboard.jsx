@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import db from "../firebase";
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // Real-time listener
+    const unsubscribe = onSnapshot(collection(db, "orders"), (snapshot) => {
       const liveOrders = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -16,7 +15,7 @@ export default function AdminDashboard() {
       setOrders(liveOrders);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribe(); // cleanup on unmount
   }, []);
 
   return (

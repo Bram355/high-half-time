@@ -1,40 +1,55 @@
-// src/pages/AdminDashboard.jsx
 import { useEffect, useState } from "react";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import db from "/src/firebase";
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/orders?_sort=id&_order=desc")
-      .then((res) => res.json())
-      .then((data) => setOrders(data));
+    const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const results = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setOrders(results);
+    });
+
+    return () => unsubscribe(); // Clean up
   }, []);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">🍪 Admin Dashboard</h1>
-      <table className="w-full table-auto border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2">Phone</th>
-            <th className="border p-2">Qty</th>
-            <th className="border p-2">Total</th>
-            <th className="border p-2">Lat</th>
-            <th className="border p-2">Lng</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((order) => (
-            <tr key={order.id}>
-              <td className="border p-2">{order.phone}</td>
-              <td className="border p-2">{order.quantity}</td>
-              <td className="border p-2">{order.total}</td>
-              <td className="border p-2">{order.location.lat}</td>
-              <td className="border p-2">{order.location.lng}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="min-h-screen bg-white text-black p-6">
+      <h2 className="text-3xl font-bold mb-6 text-center">📦 Admin Order Dashboard</h2>
+
+      {orders.length === 0 ? (
+        <p className="text-center text-lg text-gray-600">No orders yet.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto border border-gray-300 shadow-md">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-2 text-left">Name</th>
+                <th className="border px-4 py-2 text-left">Quantity</th>
+                <th className="border px-4 py-2 text-left">Location</th>
+                <th className="border px-4 py-2 text-left">Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id} className="hover:bg-gray-50">
+                  <td className="border px-4 py-2">{order.name}</td>
+                  <td className="border px-4 py-2">{order.quantity}</td>
+                  <td className="border px-4 py-2">{order.location}</td>
+                  <td className="border px-4 py-2 text-sm text-gray-700">
+                    {order.timestamp?.toDate().toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

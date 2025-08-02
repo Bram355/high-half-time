@@ -1,4 +1,6 @@
-// (same imports as your original)
+// Checkout.jsx
+// ─────────────────────────────────────────────────────────────────────────
+// (same React / router / Leaflet imports you already had)
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -6,6 +8,10 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
+
+// 🔥 Firebase
+import db from '../firebase';                                  // <-- default export
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -42,6 +48,7 @@ export default function Checkout() {
   const [tempAddress, setTempAddress] = useState('');
   const [selectedAddress, setSelectedAddress] = useState('');
 
+  /* ───────────────────────────────────────────────────────── totals */
   useEffect(() => {
     const newTotal = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -50,6 +57,7 @@ export default function Checkout() {
     setTotal(newTotal);
   }, [cart]);
 
+  /* ───────────────────────────────────────────────────────── Leaflet */
   useEffect(() => {
     const map = L.map('search-map').setView([position.lat, position.lng], 13);
 
@@ -65,7 +73,7 @@ export default function Checkout() {
       .on('markgeocode', function (e) {
         const newLatLng = e.geocode.center;
         setPosition(newLatLng);
-        setTempAddress(e.geocode.name); // save for OK button
+        setTempAddress(e.geocode.name);
         marker.setLatLng(newLatLng);
         map.setView(newLatLng, 15);
       })
@@ -74,31 +82,40 @@ export default function Checkout() {
     return () => map.remove();
   }, []);
 
-  const handleConfirmOrder = () => {
+  /* ───────────────────────────────────────────────────────── SAVE ORDER */
+  const handleConfirmOrder = async () => {
     if (!phone || !city || !house || !manualLocation) {
       alert('Please fill all fields.');
       return;
     }
 
-    const orderDetails = {
-      cart,
-      total,
-      customer: {
-        username,
+    try {
+      await addDoc(collection(db, 'orders'), {
         phone,
-        city,
-        house,
-        manualLocation,
-        mapLocation: position,
-        readableAddress: selectedAddress,
-      },
-    };
+        items: cart.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        total,
+        location: {
+          address: selectedAddress || manualLocation,
+          lat: position.lat,
+          lng: position.lng,
+        },
+        customerName: username,
+        timestamp: Timestamp.now(),
+      });
 
-    console.log('Order Submitted:', orderDetails);
-    alert('🎉 Order placed! We got your location.');
-    navigate('/menu');
+      alert('🎉 Order placed! We got your location.');
+      navigate('/menu');
+    } catch (err) {
+      console.error('❌ Firestore error:', err);
+      alert('Something went wrong — please try again.');
+    }
   };
 
+  /* ───────────────────────────────────────────────────────── UI helpers */
   const handleQuantityChange = (id, amount) => {
     setCart((prevCart) =>
       prevCart
@@ -115,6 +132,7 @@ export default function Checkout() {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
+  /* ───────────────────────────────────────────────────────── JSX */
   return (
     <div className="min-h-screen bg-zinc-950 text-white px-6 py-10">
       <h1 className="text-3xl font-bold text-center mb-8">🍰 Cheque Your Stash</h1>
@@ -131,6 +149,7 @@ export default function Checkout() {
         </div>
       ) : (
         <>
+          {/* ------- CART LIST ------- */}
           <div className="space-y-6">
             {cart.map((item) => (
               <div
@@ -168,11 +187,13 @@ export default function Checkout() {
             ))}
           </div>
 
+          {/* ------- TOTAL & FORM ------- */}
           <div className="mt-10">
             <h2 className="text-xl font-semibold text-center">
               Total: Ksh {total}
             </h2>
 
+            {/* customer details */}
             <div className="mt-6 space-y-4">
               <div className="bg-white/10 text-white p-3 rounded-lg">
                 Username: <span className="text-green-300 font-bold">{username}</span>
@@ -206,10 +227,10 @@ export default function Checkout() {
               ></textarea>
             </div>
 
+            {/* map & address picker */}
             <div className="mt-8">
               <h3 className="text-lg font-bold mb-2">Pick Location on Map</h3>
               <div id="search-map" className="h-64 w-full rounded-xl overflow-hidden z-10" />
-              {/* OK Button */}
               {tempAddress && (
                 <button
                   onClick={() => setSelectedAddress(tempAddress)}
@@ -226,6 +247,7 @@ export default function Checkout() {
               </div>
             )}
 
+            {/* action buttons */}
             <div className="mt-6 flex justify-between">
               <button
                 onClick={() => navigate('/menu')}

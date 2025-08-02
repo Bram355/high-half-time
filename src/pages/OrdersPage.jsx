@@ -1,11 +1,11 @@
-// src/pages/Orders.jsx
+// src/pages/OrdersPage.jsx
 import { useEffect, useState } from "react";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
 import db from "../firebase";
 
-export default function Orders({ user }) {
+export default function OrdersPage() {
   const [latestOrder, setLatestOrder] = useState(null);
-  const username = user?.username || "Guest";
+  const username = localStorage.getItem("username") || "Guest";
 
   useEffect(() => {
     const q = query(

@@ -1,6 +1,5 @@
 // Checkout.jsx
 // ─────────────────────────────────────────────────────────────────────────
-// (same React / router / Leaflet imports you already had)
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -10,7 +9,7 @@ import 'leaflet-control-geocoder';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 
 // 🔥 Firebase
-import db from '../firebase';                                  // <-- default export
+import db from '../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -48,7 +47,7 @@ export default function Checkout() {
   const [tempAddress, setTempAddress] = useState('');
   const [selectedAddress, setSelectedAddress] = useState('');
 
-  /* ───────────────────────────────────────────────────────── totals */
+  /* ───────────────── totals ───────────────── */
   useEffect(() => {
     const newTotal = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -57,7 +56,7 @@ export default function Checkout() {
     setTotal(newTotal);
   }, [cart]);
 
-  /* ───────────────────────────────────────────────────────── Leaflet */
+  /* ───────────────── Leaflet ───────────────── */
   useEffect(() => {
     const map = L.map('search-map').setView([position.lat, position.lng], 13);
 
@@ -82,7 +81,7 @@ export default function Checkout() {
     return () => map.remove();
   }, []);
 
-  /* ───────────────────────────────────────────────────────── SAVE ORDER */
+  /* ───────────────── SAVE ORDER ───────────────── */
   const handleConfirmOrder = async () => {
     if (!phone || !city || !house || !manualLocation) {
       alert('Please fill all fields.');
@@ -108,14 +107,14 @@ export default function Checkout() {
       });
 
       alert('🎉 Order placed! We got your location.');
-      navigate('/menu');
+      navigate('/admin'); // <--- now goes to admin
     } catch (err) {
       console.error('❌ Firestore error:', err);
       alert('Something went wrong — please try again.');
     }
   };
 
-  /* ───────────────────────────────────────────────────────── UI helpers */
+  /* ───────────────── helpers ───────────────── */
   const handleQuantityChange = (id, amount) => {
     setCart((prevCart) =>
       prevCart
@@ -132,7 +131,7 @@ export default function Checkout() {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
-  /* ───────────────────────────────────────────────────────── JSX */
+  /* ───────────────── JSX ───────────────── */
   return (
     <div className="min-h-screen bg-zinc-950 text-white px-6 py-10">
       <h1 className="text-3xl font-bold text-center mb-8">🍰 Cheque Your Stash</h1>
@@ -256,8 +255,9 @@ export default function Checkout() {
                 🔙 Back to Menu
               </button>
               <button
+                type="button"
                 onClick={handleConfirmOrder}
-                className="bg-green-700 px-6 py-3 rounded-full hover:bg-green-600"
+                className="bg-green-700 px-6 py-3 rounded-full hover:bg-green-600 z-50"
               >
                 ✅ Confirm Order
               </button>

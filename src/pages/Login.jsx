@@ -2,21 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import {
-  collection,
-  doc,
-  getDocs,
-  query,
-  where,
-  setDoc,
-} from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import animeImg from '../assets/anime.png';
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState('');
+  const [input, setInput] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
-  const [showDisclaimer, setShowDisclaimer] = useState(true);
+  const [showDisclaimer, setShowDisclaimer] = useState(
+    localStorage.getItem('ageConfirmed') !== 'true'
+  );
   const graffitiSoundRef = useRef(null);
   const navigate = useNavigate();
 
@@ -26,70 +21,60 @@ export default function Login({ onLogin }) {
 
   const handleLogin = async () => {
     setError('');
-    if (!username) {
-      return setError('Enter your username');
-    }
 
-    const uname = username.trim().toLowerCase();
+    if (!input) return setError('Please enter a username or email');
 
-    // ADMIN login (username = "admin")
-    if (uname === 'admin') {
-      if (!pin) return setError('Admin must enter password');
+    const isAdmin = input.includes('@');
+
+    if (isAdmin) {
+      // Admin login with Firebase email & password
       try {
-        await signInWithEmailAndPassword(auth, 'admin@email.com', pin);
+        const userCred = await signInWithEmailAndPassword(auth, input, pin);
+        const tokenResult = await userCred.user.getIdTokenResult();
+
         const userData = {
-          uid: 'admin',
-          email: 'admin@email.com',
-          username: 'admin',
-          isAdmin: true,
+          uid: userCred.user.uid,
+          email: userCred.user.email,
+          username: tokenResult.claims.name || 'Admin',
+          isAdmin: tokenResult.claims.admin === true,
         };
+
         localStorage.setItem('loggedInUser', JSON.stringify(userData));
-        graffitiSoundRef.current?.play();
         onLogin(userData);
-        return navigate('/admin');
+        navigate('/admin');
       } catch (err) {
-        console.error(err);
-        return setError('Invalid admin password');
+        console.error('Admin login error:', err.message);
+        setError('Invalid admin credentials');
       }
-    }
-
-    // CUSTOMER login (username only)
-    try {
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('username', '==', uname));
-      const snapshot = await getDocs(q);
-
-      let userId;
-      if (snapshot.empty) {
-        const newDocRef = doc(usersRef);
-        await setDoc(newDocRef, {
-          username: uname,
-          createdAt: new Date(),
-        });
-        userId = newDocRef.id;
-      } else {
-        userId = snapshot.docs[0].id;
-      }
-
+    } else {
+      // Guest login: just use a username and save to Firestore
       const userData = {
-        uid: userId,
-        email: '',
-        username: uname,
-        phone: '',
+        username: input.trim(),
         isAdmin: false,
       };
 
-      localStorage.setItem('loggedInUser', JSON.stringify(userData));
-      graffitiSoundRef.current?.play();
-      onLogin(userData);
-      navigate('/menu');
-    } catch (err) {
-      console.error(err);
-      return setError('Failed to log in. Try again.');
+      try {
+        const guestId = `guest_${Date.now()}`;
+        await setDoc(doc(db, 'users', guestId), {
+          username: userData.username,
+          createdAt: new Date(),
+        });
+
+        localStorage.setItem('loggedInUser', JSON.stringify(userData));
+        graffitiSoundRef.current?.play();
+        onLogin(userData);
+        navigate('/menu');
+      } catch (err) {
+        console.error('Guest login error:', err.message);
+        setError('Could not login as guest');
+      }
     }
   };
 
-  const handleConfirmAge = () => setShowDisclaimer(false);
+  const handleConfirmAge = () => {
+    localStorage.setItem('ageConfirmed', 'true');
+    setShowDisclaimer(false);
+  };
 
   if (showDisclaimer) {
     return (
@@ -117,7 +102,6 @@ export default function Login({ onLogin }) {
       }}
     >
       <div className="absolute inset-0 bg-black bg-opacity-60 z-0" />
-
       <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl overflow-hidden">
         <div className="flex justify-center items-center bg-gradient-to-br from-black/30 to-white/10 p-6 border-b border-white/10">
           <img
@@ -132,21 +116,19 @@ export default function Login({ onLogin }) {
             Exclusive Infused Collection
           </h1>
           <p className="text-center text-sm text-gray-300 mb-2">(21+)</p>
-          <p className="text-center text-pink-300 italic font-mono mb-6">
-            "Nobody knows it's you"
-          </p>
+          <p className="text-center text-pink-300 italic font-mono mb-6">"Nobody knows it's you"</p>
 
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
           <input
             type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter username or admin email"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             className="w-full px-5 py-3 text-lg font-semibold rounded-full bg-white text-black placeholder-gray-500 mb-4 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-green-400 shadow-inner"
           />
 
-          {username.trim().toLowerCase() === 'admin' && (
+          {input.includes('@') && (
             <input
               type="password"
               placeholder="Admin Password"

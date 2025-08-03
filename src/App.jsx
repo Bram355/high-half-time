@@ -38,6 +38,8 @@ export default function App() {
           };
 
           console.log("✅ Authenticated user:", userData);
+          console.log("🌍 IsAdmin (Phone Check):", userData.isAdmin);
+
 
           localStorage.setItem("loggedInUser", JSON.stringify(userData));
           setUser(userData);

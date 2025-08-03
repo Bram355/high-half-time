@@ -2,11 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  where,
+  setDoc,
+} from 'firebase/firestore';
 import animeImg from '../assets/anime.png';
 
 export default function Login({ onLogin }) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [showDisclaimer, setShowDisclaimer] = useState(true);
@@ -19,27 +26,57 @@ export default function Login({ onLogin }) {
 
   const handleLogin = async () => {
     setError('');
-
-    if (!email || !pin) {
-      return setError('Enter both email and PIN');
+    if (!username) {
+      return setError('Enter your username');
     }
 
+    const uname = username.trim().toLowerCase();
+
+    // ADMIN login (username = "admin")
+    if (uname === 'admin') {
+      if (!pin) return setError('Admin must enter password');
+      try {
+        await signInWithEmailAndPassword(auth, 'admin@email.com', pin);
+        const userData = {
+          uid: 'admin',
+          email: 'admin@email.com',
+          username: 'admin',
+          isAdmin: true,
+        };
+        localStorage.setItem('loggedInUser', JSON.stringify(userData));
+        graffitiSoundRef.current?.play();
+        onLogin(userData);
+        return navigate('/admin');
+      } catch (err) {
+        console.error(err);
+        return setError('Invalid admin password');
+      }
+    }
+
+    // CUSTOMER login (username only)
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, pin);
-      const firebaseUser = userCredential.user;
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', uname));
+      const snapshot = await getDocs(q);
 
-      // Fetch additional user data from Firestore
-      const docRef = doc(db, 'users', firebaseUser.uid);
-      const docSnap = await getDoc(docRef);
-
-      const profile = docSnap.exists() ? docSnap.data() : {};
+      let userId;
+      if (snapshot.empty) {
+        const newDocRef = doc(usersRef);
+        await setDoc(newDocRef, {
+          username: uname,
+          createdAt: new Date(),
+        });
+        userId = newDocRef.id;
+      } else {
+        userId = snapshot.docs[0].id;
+      }
 
       const userData = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        username: profile.username || 'Guest',
-        phone: profile.phone || '',
-        isAdmin: false, // Admin status handled separately in App.jsx
+        uid: userId,
+        email: '',
+        username: uname,
+        phone: '',
+        isAdmin: false,
       };
 
       localStorage.setItem('loggedInUser', JSON.stringify(userData));
@@ -47,8 +84,8 @@ export default function Login({ onLogin }) {
       onLogin(userData);
       navigate('/menu');
     } catch (err) {
-      console.error("❌ Login failed:", err);
-      setError('Invalid email or PIN');
+      console.error(err);
+      return setError('Failed to log in. Try again.');
     }
   };
 
@@ -95,37 +132,35 @@ export default function Login({ onLogin }) {
             Exclusive Infused Collection
           </h1>
           <p className="text-center text-sm text-gray-300 mb-2">(21+)</p>
-          <p className="text-center text-pink-300 italic font-mono mb-6">"Nobody knows it's you"</p>
+          <p className="text-center text-pink-300 italic font-mono mb-6">
+            "Nobody knows it's you"
+          </p>
 
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
           <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full px-5 py-3 text-lg font-semibold rounded-full bg-white text-black placeholder-gray-500 mb-4 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-green-400 shadow-inner"
           />
-          <input
-            type="password"
-            placeholder="PIN"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            className="w-full px-5 py-3 text-lg font-semibold rounded-full bg-white text-black placeholder-gray-500 mb-6 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-green-400 shadow-inner"
-          />
+
+          {username.trim().toLowerCase() === 'admin' && (
+            <input
+              type="password"
+              placeholder="Admin Password"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              className="w-full px-5 py-3 text-lg font-semibold rounded-full bg-white text-black placeholder-gray-500 mb-6 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-green-400 shadow-inner"
+            />
+          )}
 
           <button
             onClick={handleLogin}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-600 text-white py-3 rounded-full text-lg font-bold transition-all duration-200 shadow-md hover:shadow-lg mb-3"
+            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-600 text-white py-3 rounded-full text-lg font-bold transition-all duration-200 shadow-md hover:shadow-lg"
           >
             Log In
-          </button>
-
-          <button
-            onClick={() => navigate('/register')}
-            className="text-sm text-gray-300 underline hover:text-white transition w-full text-center"
-          >
-            New here? Register instead
           </button>
         </div>
       </div>

@@ -25,8 +25,8 @@ export default function AdminDashboard() {
       }));
 
       if (!firstLoad.current && liveOrders.length > orders.length) {
-        if (audioRef.current) audioRef.current.play();
         toast.success("🍪 New order received!");
+        if (audioRef.current) audioRef.current.play();
       }
       firstLoad.current = false;
 
@@ -34,17 +34,12 @@ export default function AdminDashboard() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, []); // 🔁 continuous listening, fixes disappearing issue
 
-  const deleteOrder = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this order?"
-    );
-    if (!confirmDelete) return;
-
+  const markAsDelivered = async (id) => {
     try {
       await deleteDoc(doc(db, "orders", id));
-      toast("✅ Order deleted.", { icon: "🗑️" });
+      toast("✅ Order deleted after delivery.", { icon: "🚚" });
     } catch (err) {
       console.error("Error deleting order:", err);
       toast.error("Something went wrong!");
@@ -105,10 +100,10 @@ export default function AdminDashboard() {
               </p>
 
               <button
-                onClick={() => deleteOrder(order.id)}
-                className="mt-3 bg-red-800 px-4 py-2 rounded-full hover:bg-red-700 text-white"
+                onClick={() => markAsDelivered(order.id)}
+                className="mt-3 bg-green-800 px-4 py-2 rounded-full hover:bg-green-700 text-white"
               >
-                🗑️ Delete Order
+                ✅ Mark as Delivered
               </button>
             </li>
           ))}

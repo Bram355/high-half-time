@@ -9,7 +9,6 @@ import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import Cart from './pages/Cart';
 import Chat from './pages/Chat';
-
 import AdminDashboard from './pages/AdminDashboard';
 import TestOrderForm from './pages/TestOrderForm';
 
@@ -26,10 +25,11 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // 👇 Force refresh to get latest custom claims
-          const tokenResult = await firebaseUser.getIdTokenResult(true);
-          const claims = tokenResult.claims;
+          // ✅ Force refresh token from Firebase (important for getting admin claim)
+          await firebaseUser.getIdToken(true);
+          const tokenResult = await firebaseUser.getIdTokenResult();
 
+          const claims = tokenResult.claims;
           const userData = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
@@ -38,8 +38,6 @@ export default function App() {
           };
 
           console.log("✅ Authenticated user:", userData);
-          console.log("🌍 IsAdmin (Phone Check):", userData.isAdmin);
-
 
           localStorage.setItem("loggedInUser", JSON.stringify(userData));
           setUser(userData);

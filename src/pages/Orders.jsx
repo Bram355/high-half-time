@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
-import db from "../firebase";
-
+import { db } from '../firebase';
 export default function Orders({ user }) {
   const [latestOrder, setLatestOrder] = useState(null);
   const username = user?.username || "Guest";

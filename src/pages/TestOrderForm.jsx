@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
-import db from "/src/firebase";
+import { db } from '../firebase';
 
 export default function TestOrderForm() {
   const [form, setForm] = useState({

@@ -9,7 +9,7 @@ import 'leaflet-control-geocoder';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 
 // 🔥 Firebase
-import db from '../firebase';
+import { db } from '../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 delete L.Icon.Default.prototype._getIconUrl;

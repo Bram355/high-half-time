@@ -25,18 +25,26 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const tokenResult = await firebaseUser.getIdTokenResult(true);
-        const claims = tokenResult.claims;
+        try {
+          // 👇 Force refresh to get latest custom claims
+          const tokenResult = await firebaseUser.getIdTokenResult(true);
+          const claims = tokenResult.claims;
 
-        const userData = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          username: claims.name || firebaseUser.displayName || "Guest",
-          isAdmin: claims.admin === true,
-        };
+          const userData = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            username: claims.name || firebaseUser.displayName || "Guest",
+            isAdmin: claims.admin === true,
+          };
 
-        localStorage.setItem("loggedInUser", JSON.stringify(userData));
-        setUser(userData);
+          console.log("✅ Authenticated user:", userData);
+
+          localStorage.setItem("loggedInUser", JSON.stringify(userData));
+          setUser(userData);
+        } catch (err) {
+          console.error("❌ Error getting token:", err);
+          setUser(null);
+        }
       } else {
         localStorage.removeItem("loggedInUser");
         setUser(null);
@@ -58,7 +66,11 @@ export default function App() {
           <Route
             path="/"
             element={
-              user ? <Navigate to="/menu" /> : <Login onLogin={setUser} />
+              user ? (
+                user.isAdmin ? <Navigate to="/admin" /> : <Navigate to="/menu" />
+              ) : (
+                <Login onLogin={setUser} />
+              )
             }
           />
           <Route
@@ -95,16 +107,12 @@ export default function App() {
               user ? <Chat user={user} /> : <Navigate to="/" />
             }
           />
-
-          {/* 🔒 Admin-only route */}
           <Route
             path="/admin"
             element={
               user?.isAdmin ? <AdminDashboard /> : <Navigate to="/" />
             }
           />
-
-          {/* Testing route */}
           <Route path="/test-order" element={<TestOrderForm />} />
         </Routes>
       </main>

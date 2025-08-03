@@ -1,42 +1,75 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { collection, setDoc, doc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 export default function Register({ onRegister }) {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    setError('');
+
     if (!/^\d{4}$/.test(pin)) return setError('PIN must be 4 digits');
     if (pin !== confirmPin) return setError("PINs don't match");
     if (!/^\+?\d{10,15}$/.test(phone)) return setError('Enter valid phone number');
+    if (!email) return setError('Email is required');
 
-    const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
-    if (existingUsers.some(user => user.username === username)) {
-      return setError('Username already exists');
+    try {
+      // ✅ Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pin);
+      const firebaseUser = userCredential.user;
+
+      // ✅ Save additional profile data in Firestore
+      await setDoc(doc(collection(db, 'users'), firebaseUser.uid), {
+        username,
+        phone,
+        email,
+        createdAt: new Date(),
+      });
+
+      const newUser = {
+        uid: firebaseUser.uid,
+        email,
+        username,
+        phone,
+        isAdmin: false,
+      };
+
+      localStorage.setItem('loggedInUser', JSON.stringify(newUser));
+      onRegister(newUser);
+      navigate('/menu');
+    } catch (err) {
+      console.error("Error registering:", err);
+      setError(err.message);
     }
-
-    const newUser = { username, phone, pin };
-    localStorage.setItem('users', JSON.stringify([...existingUsers, newUser]));
-    localStorage.setItem('loggedInUser', JSON.stringify(newUser));
-    onRegister(newUser); // 👈 set user in App
-    navigate('/menu');   // 👈 redirect to menu
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-lg rounded">
       <h2 className="text-2xl font-bold mb-4">Register</h2>
 
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-red-500 mb-3">{error}</p>}
 
       <input
         className="w-full mb-3 p-2 border rounded"
         placeholder="Username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
+      />
+
+      <input
+        className="w-full mb-3 p-2 border rounded"
+        placeholder="Email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
       />
 
       <input

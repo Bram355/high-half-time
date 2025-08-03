@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import animeImg from '../assets/anime.png';
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [email, setEmail] = useState('');
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
   const [showDisclaimer, setShowDisclaimer] = useState(true);
   const graffitiSoundRef = useRef(null);
   const navigate = useNavigate();
@@ -14,32 +17,38 @@ export default function Login({ onLogin }) {
     graffitiSoundRef.current = new Audio('/spray.mp3');
   }, []);
 
-  const handleLoginOrRegister = () => {
-    if (!username || !password) return alert('Enter both username and password');
+  const handleLogin = async () => {
+    setError('');
 
-    const users = JSON.parse(localStorage.getItem('users')) || {};
+    if (!email || !pin) {
+      return setError('Enter both email and PIN');
+    }
 
-    if (isRegistering) {
-      if (users[username]) {
-        return alert('Username already taken. Choose another one.');
-      }
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, pin);
+      const firebaseUser = userCredential.user;
 
-      users[username] = { password };
-      localStorage.setItem('users', JSON.stringify(users));
-      localStorage.setItem('currentUser', username);
+      // Fetch additional user data from Firestore
+      const docRef = doc(db, 'users', firebaseUser.uid);
+      const docSnap = await getDoc(docRef);
 
+      const profile = docSnap.exists() ? docSnap.data() : {};
+
+      const userData = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        username: profile.username || 'Guest',
+        phone: profile.phone || '',
+        isAdmin: false, // Admin status handled separately in App.jsx
+      };
+
+      localStorage.setItem('loggedInUser', JSON.stringify(userData));
       graffitiSoundRef.current?.play();
-      onLogin({ username });
+      onLogin(userData);
       navigate('/menu');
-    } else {
-      if (!users[username] || users[username].password !== password) {
-        return alert('Invalid username or password');
-      }
-
-      localStorage.setItem('currentUser', username);
-      graffitiSoundRef.current?.play();
-      onLogin({ username });
-      navigate('/menu');
+    } catch (err) {
+      console.error("❌ Login failed:", err);
+      setError('Invalid email or PIN');
     }
   };
 
@@ -83,38 +92,40 @@ export default function Login({ onLogin }) {
 
         <div className="p-8">
           <h1 className="text-3xl font-extrabold mb-2 text-green-400 text-center tracking-wide">
-            {isRegistering ? 'Register to Access 🔥' : 'Exclusive Infused Collection'}
+            Exclusive Infused Collection
           </h1>
           <p className="text-center text-sm text-gray-300 mb-2">(21+)</p>
           <p className="text-center text-pink-300 italic font-mono mb-6">"Nobody knows it's you"</p>
 
+          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
           <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full px-5 py-3 text-lg font-semibold rounded-full bg-white text-black placeholder-gray-500 mb-4 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-green-400 shadow-inner"
           />
           <input
             type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            placeholder="PIN"
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
             className="w-full px-5 py-3 text-lg font-semibold rounded-full bg-white text-black placeholder-gray-500 mb-6 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-green-400 shadow-inner"
           />
 
           <button
-            onClick={handleLoginOrRegister}
+            onClick={handleLogin}
             className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-600 text-white py-3 rounded-full text-lg font-bold transition-all duration-200 shadow-md hover:shadow-lg mb-3"
           >
-            {isRegistering ? 'Register' : 'Log In'}
+            Log In
           </button>
 
           <button
-            onClick={() => setIsRegistering(!isRegistering)}
-            className="text-sm text-gray-300 underline hover:text-white transition"
+            onClick={() => navigate('/register')}
+            className="text-sm text-gray-300 underline hover:text-white transition w-full text-center"
           >
-            {isRegistering ? 'Already have an account? Log in' : 'New here? Register instead'}
+            New here? Register instead
           </button>
         </div>
       </div>
